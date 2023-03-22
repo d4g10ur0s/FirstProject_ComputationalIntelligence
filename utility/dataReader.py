@@ -37,15 +37,19 @@ def main():
     j=0
     data_coordinates = []
     for i in range(math.floor(len(data.index))):
-        data_coordinates.append(data.loc[i][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]].astype('int64'))
+        try :
+            data_coordinates.append(data.loc[i][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]].astype('int64'))
+            j+=1
+        except :
+            data.drop(axis=0,index=j,inplace=True)
     data_coordinates = pd.DataFrame(data=data_coordinates,columns = ["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"] )
-    data_coordinates = (data_coordinates + 617)/(617+533) - (-617+533)/2
+    data_coordinates = (data_coordinates + 617)/(617+533)#data in [0,1]
+    data_coordinates = data_coordinates + ((533 - 617)/2)/(617+533)#data in (-1,1)
     data_coordinates = pd.concat([data_coordinates , data.iloc[:]["class"]] , axis=1 , join="outer")
-    print(str(data_coordinates))
     # shuffle data
-    #data = datasetToFolds(data)
-    #for i in data :
-    #    print(str(i))
+    data = datasetToFolds(data_coordinates)
+    for i in data :
+        print(str(i))
 
 if __name__ == "__main__":
     main()
