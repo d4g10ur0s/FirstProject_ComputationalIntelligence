@@ -33,9 +33,27 @@ def datasetToFolds(data):
 
 def data_reader():
     # read csv
-    dpath = os.getcwd()
-    data = pd.read_csv(dpath+"\\dataset.csv", delimiter=";",low_memory = False)
-    return data
+    data = pd.read_csv(os.getcwd()+"\\dataset.csv", delimiter=";",low_memory = False)
+    data = data_reader()
+    data.replace({"sitting" :1, "walking" :2, "standing":3, "standingup":4, "sittingdown":5},inplace=True)
+    # data preprocess
+    # x,y,z in [-617, 533]
+    j=0
+    data_coordinates = []
+    for i in range(math.floor(len(data.index))):
+        try :
+            data_coordinates.append(data.loc[i][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]].astype('int64'))
+            j+=1
+        except :
+            data.drop(axis=0,index=j,inplace=True)
+    data_coordinates = pd.DataFrame(data=data_coordinates,columns = ["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"] )
+    data_coordinates = (data_coordinates + 617)/(617+533)#data in [0,1]
+    data_coordinates = data_coordinates - ((533 + 617)/2)/(617+533)#data in (-1,1)
+    data_coordinates = pd.concat([data_coordinates , data.iloc[:math.floor(len(data.index))]["class"]] , axis=1 , join="outer")
+    # save to csv file
+    data_coordinates.to_csv(path_or_buf="F:\\5oEtos\\EarinoEksamhno\\YpologistikhNohmosunh\\Project_A\\utility\\processedDataset.csv", sep=';')
+
+    return data_coordinates
 
 def main():
     class_names = ["sitting", "walking", "standing", "standingup", "sittingdown"]
@@ -46,26 +64,7 @@ def main():
     if os.path.exists(os.getcwd() + "\\processedDataset.csv"):
         data_coordinates = pd.read_csv(os.getcwd()+"\\processedDataset.csv", delimiter=";",low_memory = False)
     else:
-        data = pd.read_csv(os.getcwd()+"\\dataset.csv", delimiter=";",low_memory = False)
-        data = data_reader()
-        data.replace({"sitting" :1, "walking" :2, "standing":3, "standingup":4, "sittingdown":5},inplace=True)
-        # data preprocess
-        # x,y,z in [-617, 533]
-        j=0
-        data_coordinates = []
-        for i in range(math.floor(len(data.index))):
-            try :
-                data_coordinates.append(data.loc[i][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]].astype('int64'))
-                j+=1
-            except :
-                data.drop(axis=0,index=j,inplace=True)
-        data_coordinates = pd.DataFrame(data=data_coordinates,columns = ["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"] )
-        data_coordinates = (data_coordinates + 617)/(617+533)#data in [0,1]
-        data_coordinates = data_coordinates - ((533 + 617)/2)/(617+533)#data in (-1,1)
-        data_coordinates = pd.concat([data_coordinates , data.iloc[:math.floor(len(data.index))]["class"]] , axis=1 , join="outer")
-        # save to csv file
-        data_coordinates.to_csv(path_or_buf="F:\\5oEtos\\EarinoEksamhno\\YpologistikhNohmosunh\\Project_A\\utility\\processedDataset.csv", sep=';')
-
+        data_coordinates = data_reader()
     # shuffle data
     data = datasetToFolds(data_coordinates)
     # training data
