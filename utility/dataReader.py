@@ -1,6 +1,7 @@
 from keras.models import Sequential
 from keras.layers import Dense
-
+from keras.layers import Flatten
+from keras import Input
 import tensorflow as tf
 
 import pandas as pd
@@ -32,9 +33,9 @@ def datasetToFolds(data):
     return ffold
 
 def data_reader():
+    print("+mvainei")
     # read csv
     data = pd.read_csv(os.getcwd()+"\\dataset.csv", delimiter=";",low_memory = False)
-    data = data_reader()
     data.replace({"sitting" :1, "walking" :2, "standing":3, "standingup":4, "sittingdown":5},inplace=True)
     # data preprocess
     # x,y,z in [-617, 533]
@@ -67,23 +68,36 @@ def main():
         data_coordinates = data_reader()
     # shuffle data
     data = datasetToFolds(data_coordinates)
+    # test data
+    test_data = np.array(data[4].iloc[:][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]])
+    labels = data[4].iloc[:]["class"]/5
     # training data
     trainingData = pd.concat(data[:4], axis=0,join="inner")
     # Define the model
     model = Sequential()
-    model.add(Dense(4, input_dim=3, activation='relu', input_shape=(4,3)))
-    model.add(Dense(1 ,activation='softmax', input_shape=(1,4) ))
-    # Compile the model
-    model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer=tf.keras.optimizers.SGD(learning_rate=0.05,))
-    model.fit(tf.constant(trainingData.loc[:][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]],shape=(len(trainingData.index),4,3)), trainingData.loc[:]["class"], epochs=5, batch_size=1)
-
-    test_data = np.array(data[4].loc[:len(data[4].index)][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]])
-    predictions=model.predict(np.array(data[4].loc[:].drop(axis=1,labels=["class"])).reshape(len(data[4].index),4,3))
+    model.add(Dense(4,activation='relu',))
+    model.add(Dense(1 ,activation=tf.keras.activations.sigmoid))
+    # Compile the model tf.keras.losses.MeanSquaredError()
+    model.compile(loss=tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.SUM), optimizer=tf.keras.optimizers.SGD(learning_rate=0.015,),metrics=["accuracy"])
+    x = trainingData.iloc[:][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]]
+    y = trainingData.iloc[:]["class"]/5
+    #print(tf.keras.activations.sigmoid(tf.constant(x.loc[0][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]])))
+    model.fit(x, y, epochs=2, batch_size=1)
+    #model.fit(tf.constant(trainingData.loc[:][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]],shape=(len(trainingData.index),4,3)), trainingData.loc[:]["class"]/5, epochs=2, batch_size=1)
+    model.save('my_model')
+    model.summary(show_trainable=True,)
+    '''
+    model= tf.keras.models.load_model('my_model')
+    '''
+    #predictions=model.predict(test_data.reshape(len(data[4].loc[:].drop(axis=1,labels=["class"]).index),4,3))
+    predictions=model.predict(test_data)
+    print(predictions)
     pr = []
     mcounter = 0
+    test_data = data[4].iloc[:][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]]
     for i in predictions:
         pr.append(i[0])
-    results = pd.concat([data[4] , pd.DataFrame(data = {"results" : pr}) ], axis=1 , join="outer")
+    results = pd.concat([test_data, labels , pd.DataFrame(data = {"results" : pr}) ], axis=1 , join="outer")
     print(results)
 
 
