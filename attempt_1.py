@@ -46,7 +46,7 @@ def main():
         y = trainingData.iloc[:]["class"]
         test_data = np.array(data[i].iloc[:][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]])
         test_labels = pd.get_dummies(data[i].iloc[:][["class"]])
-        history = model.fit(x, pd.get_dummies(y.iloc[:]), epochs=1, batch_size=1
+        history = model.fit(x, pd.get_dummies(y.iloc[:]), epochs=1, batch_size=1,
                             validation_data = (test_data , test_labels) )
         print(history.history.keys())
         #predictions = model.predict(test_data)
