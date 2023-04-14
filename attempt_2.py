@@ -31,7 +31,7 @@ def main():
     # Define the model
     model = Sequential()
     model.add(Dense(4,activation='relu',))
-    model.add(Dense(1 ,activation=tf.keras.activations.softmax))
+    model.add(Dense(5 ,activation=tf.keras.activations.softmax))
     # Compile the model tf.keras.losses.MeanSquaredError()
     model.compile(loss=tf.keras.losses.CategoricalCrossentropy(), optimizer=tf.keras.optimizers.SGD(learning_rate=0.001,),metrics=["accuracy"])
     #model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(), optimizer=tf.keras.optimizers.SGD(learning_rate=0.001,),metrics=["mean_squared_error"])
@@ -43,7 +43,6 @@ def main():
         trainingData = pd.concat(data[:i]+data[1+i:], axis=0,join="inner")
         x = trainingData.iloc[:][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]]
         y = trainingData.iloc[:]["class"]
-        print(pd.get_dummies(y.iloc[:]))
         #print(tf.keras.activations.sigmoid(tf.constant(x.loc[0][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]])))
         model.fit(x, pd.get_dummies(y.iloc[:]), epochs=2, batch_size=1)
         model.summary(show_trainable=True,)
