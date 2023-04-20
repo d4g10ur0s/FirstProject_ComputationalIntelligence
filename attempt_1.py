@@ -15,23 +15,49 @@ import os
 from utility.dataReader import data_reader
 from utility.dataReader import datasetToFolds
 
+accuracy = []
+mse = []
+ce = []
+
 def makePlot(history):
+    global accuracy
+    global mse
+    global ce
+
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.plot(history.history['MSE'])
-    plt.plot(history.history['val_MSE'])
+    plt.legend(['train', 'test'], loc='upper left')
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
     plt.show()
+    ################################################
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.title('model loss ( CE )')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.show()
+    ################################################
+
+    plt.plot(history.history['MSE'])
+    plt.plot(history.history['val_MSE'])
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.title('model MSE')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.show()
+    accuracy.append(history.history.get('accuracy')[-1])
+    mse.append(history.history.get('MSE')[-1])
+    ce.append(history.history.get('loss')[-1])
+
 
 def main():
-    class_names = ["sitting", "walking", "standing", "standingup", "sittingdown"]
-    #class_namesDict = {"sitting" :1, "walking" :2, "standing":3, "standingup":4, "sittingdown":5}
-    #class_namesDict = {"sitting" :[00001], "walking" :[00010], "standing":[00100], "standingup":[01000], "sittingdown":[10000]}
+    global accuracy
+    global mse
+    global ce
+
     data = None
     data_coordinates = None
     # read csv
@@ -41,15 +67,16 @@ def main():
         data_coordinates = data_reader()
     # shuffle data
     data = datasetToFolds(data_coordinates)
-    # Define the model
-    model = Sequential()
-    model.add(Dense(4,activation='relu',))
-    model.add(Dense(5 ,activation=tf.keras.activations.softmax))
-    # Compile the model tf.keras.losses.MeanSquaredError()
-    model.compile(loss=tf.keras.losses.CategoricalCrossentropy(), optimizer=tf.keras.optimizers.SGD(learning_rate=0.001,),metrics=["accuracy","MSE","categorical_crossentropy"])
-    #model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(), optimizer=tf.keras.optimizers.SGD(learning_rate=0.001,),metrics=["mean_squared_error"])
     history = None
     for i in range(5):
+        tf.keras.backend.clear_session()
+        # Define the model
+        model = Sequential()
+        model.add(Dense(17,activation='relu',))
+        model.add(Dense(5 ,activation=tf.keras.activations.softmax))
+        model.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
+                      optimizer=tf.keras.optimizers.SGD(learning_rate=0.1,momentum=0.6),
+                      metrics=["accuracy","MSE","categorical_crossentropy"])
         # test data
         test_data = np.array(data[i].iloc[:][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]])
         labels = data[i].iloc[:]["class"]
@@ -59,7 +86,7 @@ def main():
         y = trainingData.iloc[:]["class"]
         test_data = np.array(data[i].iloc[:][["x1","y1","z1","x2","y2","z2","x3","y3","z3","x4","y4","z4"]])
         test_labels = data[i].iloc[:][["class"]]
-        history = model.fit(x, pd.get_dummies(y.iloc[:]), epochs=5, batch_size=1,
+        history = model.fit(x, pd.get_dummies(y.iloc[:]), epochs=10, batch_size=1,
                             validation_data = (test_data , pd.get_dummies(test_labels.iloc[:] , columns=['class'])) )
         makePlot(history)
         model.summary(show_trainable=True,)
@@ -68,7 +95,16 @@ def main():
     model= tf.keras.models.load_model('attempt_2_1')
     '''
     model.save('attempt_2_1')
-
+    a = 0
+    b = 0
+    c = 0
+    for i in range(5):
+        a+=accuracy[i]
+        b+=mse[i]
+        c+=ce[i]
+    print("Accuracy : " + str(a/5))
+    print("MSE : " + str(b/5))
+    print("Cross Entropy : " + str(c/5))
 
 
 if __name__ == "__main__":
