@@ -72,7 +72,7 @@ def main():
         tf.keras.backend.clear_session()
         # Define the model
         model = Sequential()
-        model.add(Dense(17,activation='relu',kernel_regularizer=tf.keras.regularizers.l2(0.5),))
+        model.add(Dense(17,activation='relu',kernel_regularizer=tf.keras.regularizers.l2(0.1),))
         model.add(Dense(5 ,activation=tf.keras.activations.softmax))
         model.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
                       optimizer=tf.keras.optimizers.SGD(learning_rate=0.001,momentum=0.6),
