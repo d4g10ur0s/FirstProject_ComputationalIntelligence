@@ -12,6 +12,7 @@ import math
 
 import os
 
+from utility.dataReader import generatedData_reader
 from utility.dataReader import data_reader
 from utility.dataReader import datasetToFolds
 
@@ -52,8 +53,7 @@ def makePlot(history):
     mse.append(history.history.get('MSE')[-1])
     ce.append(history.history.get('loss')[-1])
 
-
-def main():
+def projectA():
     global accuracy
     global mse
     global ce
@@ -72,7 +72,7 @@ def main():
         tf.keras.backend.clear_session()
         # Define the model
         model = Sequential()
-        model.add(Dense(17,activation='relu',kernel_regularizer=tf.keras.regularizers.l2(0.1),))
+        model.add(Dense(17,activation='relu',kernel_regularizer=tf.keras.regularizers.l2(0.5),))
         model.add(Dense(5 ,activation=tf.keras.activations.softmax))
         model.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
                       optimizer=tf.keras.optimizers.SGD(learning_rate=0.001,momentum=0.6),
@@ -113,6 +113,10 @@ def main():
     print("Accuracy : " + str(a/5))
     print("MSE : " + str(b/5))
     print("Cross Entropy : " + str(c/5))
+
+def main():
+    #projectA()
+
 
 
 if __name__ == "__main__":
